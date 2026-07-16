@@ -234,7 +234,7 @@ export default function TrackDetails() {
       a.click();
     } catch {
       // Fallback: fetch stream URL and download from there
-      const streamUrl = await getStreamUrl(track.id);
+      const streamUrl = await getStreamUrl(track.id, track.title, track.artist);
       if (streamUrl) {
         const a = document.createElement('a');
         a.href = streamUrl;
