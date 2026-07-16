@@ -8,7 +8,7 @@ import Visualizer from '../components/Visualizer';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, Share2, ListPlus, ArrowLeft, Download, Play, Pause,
-  Maximize2, X, Volume2, Music2, Sparkles, Radio, ChevronRight
+  Maximize2, X, Music2, Sparkles, Radio, ChevronRight
 } from 'lucide-react';
 import './TrackDetails.css';
 
@@ -52,7 +52,6 @@ function AuraVideoPlayer({ videoId, title, artist, onClose }: {
   };
 
   useEffect(() => {
-    const el = document.documentElement;
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
