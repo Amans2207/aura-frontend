@@ -333,7 +333,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       });
     }
 
-  }, [addToRecent, handleEnded, volume, crossfadeDuration, pitch, enableAudioEngine, playNext, playPrev]);
+  }, [addToRecent, handleEnded, volume, crossfadeDuration, pitch, enableAudioEngine]);
 
   // --- Play Next / Prev ---
   const playNext = useCallback(async () => {
