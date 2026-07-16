@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { X, Download, ExternalLink, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE } from '../api/backend';
+import { usePlayer } from '../context/PlayerContext';
 import './VideoModal.css';
 
 interface VideoModalProps {
@@ -14,6 +15,14 @@ interface VideoModalProps {
 
 export default function VideoModal({ videoId, title, artist, onClose }: VideoModalProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const { isPlaying, togglePlayPause } = usePlayer();
+
+  useEffect(() => {
+    // Pause background audio when video modal opens
+    if (isPlaying) {
+      togglePlayPause();
+    }
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };

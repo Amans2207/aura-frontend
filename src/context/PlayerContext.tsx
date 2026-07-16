@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useRef, useEffect, useCallback, ty
 import type { Track } from '../data/tracks';
 // @ts-ignore
 import { getColorSync, getPaletteSync } from 'colorthief';
-import YouTube from 'react-youtube';
+import { API_BASE } from '../api/backend';
 import {
   startBackgroundKeepAlive,
   stopBackgroundKeepAlive,
@@ -99,9 +99,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [showLyrics, setShowLyrics] = useState(false);
   const [showMiniPlayer, setShowMiniPlayer] = useState(false);
 
-  const youtubePlayerRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<any>(null);
-  const localAudioRef = useRef<HTMLAudioElement | null>(null);
   const crossfadeTimerRef = useRef<any>(null);
   const currentTrackRef = useRef<Track | null>(null);
   const queueRef = useRef<Track[]>([]);
@@ -153,13 +152,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     try {
       const { getDeviceId } = require('../api/backend');
       const deviceId = getDeviceId();
-      fetch(`http://localhost:8000/recent`, {
+      fetch(`${API_BASE}/recent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Device-ID': deviceId },
         body: JSON.stringify({ id: track.id, title: track.title, artist: track.artist, coverArt: track.coverArt, duration: (track as any).duration || '0:00' })
       }).catch(() => {});
       // Last.fm scrobble
-      fetch(`http://localhost:8000/scrobble`, {
+      fetch(`${API_BASE}/scrobble`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Device-ID': deviceId },
         body: JSON.stringify({ title: track.title, artist: track.artist, duration: 180 })
@@ -199,10 +198,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     return null;
   }, []);
 
-  // --- Crossfade logic ---
+  // --- Handle song ended ---
+  const handleEnded = useCallback(async () => {
+    setIsPlaying(false);
+    setProgress(0);
+    const next = await pickNextTrack();
+    if (next) {
+      setCurrentTrack(next); // This will trigger playTrack in useEffect or we can just call playTrack
+      playTrack(next); // Call explicitly since we removed crossfade automatic setter for simplicity here
+    }
+  }, [pickNextTrack]);
+
+  // --- Crossfade logic (Volume fade out) ---
   const startCrossfade = useCallback((nextTrack: Track) => {
-    if (!youtubePlayerRef.current || crossfadeDuration === 0) {
+    if (!audioRef.current || crossfadeDuration === 0) {
       setCurrentTrack(nextTrack);
+      playTrack(nextTrack);
       return;
     }
     const steps = 20;
@@ -212,26 +223,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     crossfadeTimerRef.current = setInterval(() => {
       step++;
       const vol = Math.max(0, volume * (1 - step / steps));
-      try { youtubePlayerRef.current?.setVolume(vol); } catch {}
+      try { if (audioRef.current) audioRef.current.volume = vol / 100; } catch {}
       if (step >= steps) {
         clearInterval(crossfadeTimerRef.current);
         setCurrentTrack(nextTrack);
-        setTimeout(() => {
-          try { youtubePlayerRef.current?.setVolume(volume); } catch {}
-        }, 500);
+        playTrack(nextTrack);
       }
     }, interval);
   }, [crossfadeDuration, volume]);
-
-  // --- Handle song ended ---
-  const handleEnded = useCallback(async () => {
-    setIsPlaying(false);
-    setProgress(0);
-    const next = await pickNextTrack();
-    if (next) {
-      startCrossfade(next);
-    }
-  }, [pickNextTrack, startCrossfade]);
 
   // --- Play Track ---
   const playTrack = useCallback((track: Track) => {
@@ -248,34 +247,64 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     setCurrentTrack(track);
 
-    // Start background keep-alive for mobile
-    startBackgroundKeepAlive();
-
-    // Update MediaSession
+    // Update MediaSession early
     updateMediaSession(
       { title: track.title, artist: track.artist, coverArt: track.coverArt },
       {
-        play: () => { youtubePlayerRef.current?.playVideo(); setIsPlaying(true); },
-        pause: () => { youtubePlayerRef.current?.pauseVideo(); setIsPlaying(false); },
+        play: () => { audioRef.current?.play(); setIsPlaying(true); setMediaSessionPlayback('playing'); startBackgroundKeepAlive(); },
+        pause: () => { audioRef.current?.pause(); setIsPlaying(false); setMediaSessionPlayback('paused'); stopBackgroundKeepAlive(); },
         next: playNext,
         prev: playPrev,
         seekTo: (d) => { if (d.seekTime != null) seek(d.seekTime); },
       }
     );
 
-    // Handle local file
+    // Setup HTML5 Audio
+    try { audioRef.current?.pause(); } catch {}
+    if (!audioRef.current) audioRef.current = new Audio();
+    const audio = audioRef.current;
+    
     if ((track as any).isLocal && (track as any).localUrl) {
-      try { youtubePlayerRef.current?.stopVideo(); } catch {}
-      if (!localAudioRef.current) localAudioRef.current = new Audio();
-      const audio = localAudioRef.current;
       audio.src = (track as any).localUrl;
-      audio.volume = volume / 100;
-      audio.onloadedmetadata = () => setDuration(audio.duration || 0);
-      audio.ontimeupdate = () => setProgress(audio.currentTime);
-      audio.onended = handleEnded;
-      audio.play().then(() => setIsPlaying(true)).catch(console.error);
+    } else {
+      audio.src = `${API_BASE}/stream?video_id=${track.id}`;
     }
-  }, [addToRecent, handleEnded, volume]);
+    
+    audio.volume = volume / 100;
+    audio.preservesPitch = true;
+    (audio as any).mozPreservesPitch = true;
+    (audio as any).webkitPreservesPitch = true;
+
+    audio.onloadedmetadata = () => setDuration(audio.duration || 0);
+    audio.ontimeupdate = () => {
+      setProgress(audio.currentTime);
+      updateMediaSessionPosition(audio.currentTime, audio.duration || 0);
+      
+      // Crossfade logic
+      const d = audio.duration || 0;
+      const t = audio.currentTime;
+      if (crossfadeDuration > 0 && d > 0 && d - t <= crossfadeDuration && d - t > crossfadeDuration - 0.5) {
+        // Prevent multiple triggers
+        if (!crossfadeTimerRef.current) {
+           pickNextTrack().then(next => { if (next) startCrossfade(next); });
+        }
+      }
+    };
+    audio.onended = handleEnded;
+    
+    // Connect to Audio Engine (Web Audio API)
+    import('../services/audioEngine').then(eng => {
+      eng.connectLocalAudio(audio);
+      eng.setPitch(pitch, audio);
+    });
+
+    audio.play().then(() => {
+      setIsPlaying(true);
+      setMediaSessionPlayback('playing');
+      startBackgroundKeepAlive();
+    }).catch(console.error);
+
+  }, [addToRecent, handleEnded, volume, crossfadeDuration, pitch]);
 
   // --- Play Next / Prev ---
   const playNext = useCallback(async () => {
@@ -284,7 +313,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [pickNextTrack, startCrossfade]);
 
   const playPrev = useCallback(() => {
-    // If > 3s in, restart
     if (progress > 3) {
       seek(0);
       return;
@@ -294,52 +322,38 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       const prev = h[0];
       setHistory(p => p.slice(1));
       setCurrentTrack(prev);
+      playTrack(prev);
     }
-  }, [progress]);
+  }, [progress, playTrack]);
 
   // --- togglePlayPause ---
   const togglePlayPause = useCallback(() => {
-    // Local file
-    if (currentTrackRef.current && (currentTrackRef.current as any).isLocal && localAudioRef.current) {
-      if (localAudioRef.current.paused) {
-        localAudioRef.current.play().then(() => { setIsPlaying(true); setMediaSessionPlayback('playing'); startBackgroundKeepAlive(); }).catch(console.error);
-      } else {
-        localAudioRef.current.pause();
-        setIsPlaying(false);
-        setMediaSessionPlayback('paused');
-      }
-      return;
-    }
-    if (youtubePlayerRef.current && currentTrackRef.current) {
+    if (audioRef.current && currentTrackRef.current) {
       if (isPlaying) {
-        youtubePlayerRef.current.pauseVideo();
+        audioRef.current.pause();
         setIsPlaying(false);
         setMediaSessionPlayback('paused');
         stopBackgroundKeepAlive();
       } else {
-        youtubePlayerRef.current.playVideo();
-        setIsPlaying(true);
-        setMediaSessionPlayback('playing');
-        startBackgroundKeepAlive();
+        audioRef.current.play().then(() => { 
+          setIsPlaying(true); 
+          setMediaSessionPlayback('playing'); 
+          startBackgroundKeepAlive(); 
+        }).catch(console.error);
       }
     }
   }, [isPlaying]);
 
   const seek = useCallback((time: number) => {
-    if (youtubePlayerRef.current) {
-      youtubePlayerRef.current.seekTo(time, true);
-      setProgress(time);
-    }
-    if (localAudioRef.current) {
-      localAudioRef.current.currentTime = time;
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
       setProgress(time);
     }
   }, []);
 
   const setVolumeLevel = useCallback((vol: number) => {
     setVolume(vol);
-    if (youtubePlayerRef.current) youtubePlayerRef.current.setVolume(vol);
-    if (localAudioRef.current) localAudioRef.current.volume = vol / 100;
+    if (audioRef.current) audioRef.current.volume = vol / 100;
   }, []);
 
   // EQ stubs
@@ -352,8 +366,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // Pitch control
   const setPitch = (val: number) => {
     setPitchState(val);
-    if (localAudioRef.current) {
-      import('../services/audioEngine').then(eng => eng.setPitch(val, localAudioRef.current!));
+    if (audioRef.current) {
+      import('../services/audioEngine').then(eng => eng.setPitch(val, audioRef.current!));
     }
   };
 
@@ -364,12 +378,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   // Queue controls
-  const addToQueue = useCallback((track: Track) => {
-    setQueue(prev => [...prev, track]);
-  }, []);
-  const removeFromQueue = useCallback((index: number) => {
-    setQueue(prev => prev.filter((_, i) => i !== index));
-  }, []);
+  const addToQueue = useCallback((track: Track) => setQueue(prev => [...prev, track]), []);
+  const removeFromQueue = useCallback((index: number) => setQueue(prev => prev.filter((_, i) => i !== index)), []);
   const clearQueue = useCallback(() => setQueue([]), []);
 
   const toggleShuffle = useCallback(() => setShuffle(s => !s), []);
@@ -384,11 +394,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
       switch (e.code) {
         case 'Space': e.preventDefault(); togglePlayPause(); break;
-        case 'ArrowRight': e.preventDefault(); seek(Math.min((youtubePlayerRef.current?.getCurrentTime() || progress) + 10, duration)); break;
-        case 'ArrowLeft': e.preventDefault(); seek(Math.max((youtubePlayerRef.current?.getCurrentTime() || progress) - 10, 0)); break;
+        case 'ArrowRight': e.preventDefault(); seek(Math.min((audioRef.current?.currentTime || progress) + 10, duration)); break;
+        case 'ArrowLeft': e.preventDefault(); seek(Math.max((audioRef.current?.currentTime || progress) - 10, 0)); break;
         case 'KeyM': e.preventDefault();
-          if (youtubePlayerRef.current) {
-            youtubePlayerRef.current.isMuted() ? youtubePlayerRef.current.unMute() : youtubePlayerRef.current.mute();
+          if (audioRef.current) {
+            audioRef.current.muted = !audioRef.current.muted;
           }
           break;
         case 'KeyS': e.preventDefault(); toggleShuffle(); break;
@@ -400,64 +410,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-
-    // MediaSession
-    if ('mediaSession' in navigator && currentTrackRef.current) {
-      const t = currentTrackRef.current;
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: t.title, artist: t.artist,
-        artwork: t.coverArt ? [{ src: t.coverArt, sizes: '512x512', type: 'image/jpeg' }] : []
-      });
-      navigator.mediaSession.setActionHandler('play', togglePlayPause);
-      navigator.mediaSession.setActionHandler('pause', togglePlayPause);
-      navigator.mediaSession.setActionHandler('nexttrack', playNext);
-      navigator.mediaSession.setActionHandler('previoustrack', playPrev);
-    }
-
-    progressIntervalRef.current = setInterval(() => {
-      if (isPlaying && youtubePlayerRef.current) {
-        const t = youtubePlayerRef.current.getCurrentTime() || 0;
-        const d = youtubePlayerRef.current.getDuration() || 0;
-        setProgress(t);
-        // Update MediaSession position for lock screen scrubber
-        updateMediaSessionPosition(t, d);
-        // Crossfade trigger
-        if (crossfadeDuration > 0 && d > 0 && d - t <= crossfadeDuration && d - t > crossfadeDuration - 1.1) {
-          pickNextTrack().then(next => { if (next) startCrossfade(next); });
-        }
-      }
-    }, 1000);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      clearInterval(progressIntervalRef.current);
-    };
-  }, [currentTrack, isPlaying, togglePlayPause, seek, toggleShuffle, toggleRepeat, playNext, playPrev, crossfadeDuration]);
-
-  const onReady = (event: any) => {
-    youtubePlayerRef.current = event.target;
-    event.target.setVolume(volume);
-  };
-
-  const onStateChange = (event: any) => {
-    // 1: playing, 2: paused, 0: ended
-    if (event.data === 1) {
-      setIsPlaying(true);
-      setDuration(event.target.getDuration() || 0);
-      setMediaSessionPlayback('playing');
-      startBackgroundKeepAlive();
-    } else if (event.data === 2) {
-      setIsPlaying(false);
-      setMediaSessionPlayback('paused');
-    } else if (event.data === 0) {
-      handleEnded();
-    }
-  };
-
-  const opts: any = {
-    height: '0', width: '0',
-    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, modestbranding: 1, playsinline: 1 },
-  };
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentTrack, isPlaying, togglePlayPause, seek, toggleShuffle, toggleRepeat, playNext, playPrev, crossfadeDuration, duration, progress]);
 
   return (
     <PlayerContext.Provider value={{
@@ -472,11 +426,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setShowQueue, setShowFullScreen, setShowShortcuts, setShowLyrics, setShowMiniPlayer,
     }}>
       {children}
-      {currentTrack && !(currentTrack as any).isLocal && (
-        <div style={{ display: 'none' }}>
-          <YouTube videoId={currentTrack.id} opts={opts} onReady={onReady} onStateChange={onStateChange} onError={(e) => console.error('YT Error', e)} />
-        </div>
-      )}
     </PlayerContext.Provider>
   );
 }
