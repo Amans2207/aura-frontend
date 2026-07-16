@@ -107,6 +107,7 @@ export default function Sidebar({ isOpen, closeSidebar }: SidebarProps) {
                 <li><Radio size={17} /> Podcasts</li>
               </NavLink>
             </ul>
+          </div>
           {profile.is_admin && (
             <NavLink to="/admin" className={({isActive}) => isActive ? 'nav-item active' : 'nav-item'} onClick={closeSidebar}>
               <Shield size={20} />
