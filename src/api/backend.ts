@@ -1,6 +1,6 @@
 import type { Track } from '../data/tracks';
 
-export const API_BASE = 'http://127.0.0.1:8000';
+export const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 import { supabase } from '../lib/supabase';
 
 export const getDeviceId = () => {
@@ -208,15 +208,7 @@ export async function getArtist(artistName: string): Promise<any> {
   }
 }
 
-// --- DEVICE ID ---
-export function getDeviceId(): string {
-  let id = localStorage.getItem('aura_device_id');
-  if (!id) {
-    id = 'device_' + Math.random().toString(36).substr(2, 16) + Date.now();
-    localStorage.setItem('aura_device_id', id);
-  }
-  return id;
-}
+
 
 // --- PODCASTS ---
 export const getPodcasts = async () => {
