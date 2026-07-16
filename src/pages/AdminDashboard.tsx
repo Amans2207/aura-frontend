@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Shield, User, Star, LogOut, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:8000';
+import { API_BASE } from '../api/backend';
 
 interface AppUser {
   id: number;

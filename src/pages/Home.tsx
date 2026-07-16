@@ -3,19 +3,12 @@ import '../components/MainContent.css';
 import './Home.css';
 import { usePlayer } from '../context/PlayerContext';
 import type { Track } from '../data/tracks';
-import { searchTracks, getExplore } from '../api/backend';
+import { searchTracks, getExplore, API_BASE, getDeviceId } from '../api/backend';
 import { useNavigate } from 'react-router-dom';
 import { useLikedTracks } from '../context/LikedTracksContext';
 import { Heart, ListPlus, Flame, Sparkles, Search, Video, Music2, Play, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VideoModal from '../components/VideoModal';
-
-const API_BASE = 'http://localhost:8000';
-const getDeviceId = () => {
-  let id = localStorage.getItem('aura_device_id');
-  if (!id) { id = `device_${Date.now()}_${Math.random().toString(36).slice(2)}`; localStorage.setItem('aura_device_id', id); }
-  return id;
-};
 
 type ViewMode = 'grid' | 'list';
 
