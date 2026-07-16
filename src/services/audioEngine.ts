@@ -14,6 +14,15 @@ let compressorNode: DynamicsCompressorNode | null = null;
 // we use playbackRate trick + compensation via detune for local audio elements.
 // For YouTube (iframe), we use a proxy approach.
 
+let bassNode: BiquadFilterNode | null = null;
+let midNode: BiquadFilterNode | null = null;
+let trebleNode: BiquadFilterNode | null = null;
+let panNode: StereoPannerNode | null = null;
+
+let bassValue = 0;
+let midValue = 0;
+let trebleValue = 0;
+let panValue = 0;
 let pitchValue = 0; // semitones, -12 to +12
 let replayGainEnabled = false;
 
@@ -36,6 +45,27 @@ export function connectLocalAudio(audioEl: HTMLAudioElement): void {
   }
   
   sourceNode = ctx.createMediaElementSource(audioEl);
+  
+  // Create EQ nodes
+  bassNode = ctx.createBiquadFilter();
+  bassNode.type = 'lowshelf';
+  bassNode.frequency.value = 250;
+  bassNode.gain.value = bassValue;
+
+  midNode = ctx.createBiquadFilter();
+  midNode.type = 'peaking';
+  midNode.frequency.value = 1000;
+  midNode.Q.value = 1;
+  midNode.gain.value = midValue;
+
+  trebleNode = ctx.createBiquadFilter();
+  trebleNode.type = 'highshelf';
+  trebleNode.frequency.value = 4000;
+  trebleNode.gain.value = trebleValue;
+
+  panNode = ctx.createStereoPanner();
+  panNode.pan.value = panValue;
+
   gainNode = ctx.createGain();
   compressorNode = ctx.createDynamicsCompressor();
   
@@ -45,15 +75,40 @@ export function connectLocalAudio(audioEl: HTMLAudioElement): void {
   compressorNode.ratio.setValueAtTime(12, ctx.currentTime);
   compressorNode.attack.setValueAtTime(0.003, ctx.currentTime);
   compressorNode.release.setValueAtTime(0.25, ctx.currentTime);
+
+  // Connection chain: Source -> EQ -> Pan -> Gain -> (Compressor) -> Dest
+  sourceNode.connect(bassNode);
+  bassNode.connect(midNode);
+  midNode.connect(trebleNode);
+  trebleNode.connect(panNode);
+  panNode.connect(gainNode);
   
   if (replayGainEnabled) {
-    sourceNode.connect(gainNode);
     gainNode.connect(compressorNode);
     compressorNode.connect(ctx.destination);
   } else {
-    sourceNode.connect(gainNode);
     gainNode.connect(ctx.destination);
   }
+}
+
+export function setBassValue(val: number) {
+  bassValue = val;
+  if (bassNode) bassNode.gain.value = val;
+}
+
+export function setMidValue(val: number) {
+  midValue = val;
+  if (midNode) midNode.gain.value = val;
+}
+
+export function setTrebleValue(val: number) {
+  trebleValue = val;
+  if (trebleNode) trebleNode.gain.value = val;
+}
+
+export function setPanValue(val: number) {
+  panValue = val;
+  if (panNode) panNode.pan.value = val;
 }
 
 /**

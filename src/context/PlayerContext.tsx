@@ -24,6 +24,7 @@ interface PlayerContextType {
   bass: number; mid: number; treble: number; pan: number;
   pitch: number;
   replayGain: boolean;
+  enableAudioEngine: boolean;
   queue: Track[];
   shuffle: boolean;
   repeat: RepeatMode;
@@ -44,6 +45,7 @@ interface PlayerContextType {
   setPan: (val: number) => void;
   setPitch: (val: number) => void;
   setReplayGain: (val: boolean) => void;
+  setEnableAudioEngine: (val: boolean) => void;
   getFrequencyData: () => Uint8Array | null;
   addToQueue: (track: Track) => void;
   removeFromQueue: (index: number) => void;
@@ -83,6 +85,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [pan, setPanState] = useState(0);
   const [pitch, setPitchState] = useState(0);
   const [replayGain, setReplayGainState] = useState(false);
+  const [enableAudioEngine, setEnableAudioEngineState] = useState(() => {
+    // Default to false on mobile, true on desktop
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    return !isMobile;
+  });
 
   // Queue, shuffle, repeat
   const [queue, setQueue] = useState<Track[]>([]);
@@ -292,11 +299,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     };
     audio.onended = handleEnded;
     
-    // Connect to Audio Engine (Web Audio API)
-    import('../services/audioEngine').then(eng => {
-      eng.connectLocalAudio(audio);
-      eng.setPitch(pitch, audio);
-    });
+    // Connect to Audio Engine (Web Audio API) only if enabled
+    if (enableAudioEngine) {
+      import('../services/audioEngine').then(eng => {
+        eng.connectLocalAudio(audio);
+        eng.setPitch(pitch, audio);
+      });
+    }
 
     audio.play().then(() => {
       setIsPlaying(true);
@@ -357,10 +366,22 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // EQ stubs
-  const setBass = (val: number) => setBassState(val);
-  const setMid = (val: number) => setMidState(val);
-  const setTreble = (val: number) => setTrebleState(val);
-  const setPan = (val: number) => setPanState(val);
+  const setBass = (val: number) => {
+    setBassState(val);
+    if (enableAudioEngine) import('../services/audioEngine').then(eng => eng.setBassValue(val));
+  };
+  const setMid = (val: number) => {
+    setMidState(val);
+    if (enableAudioEngine) import('../services/audioEngine').then(eng => eng.setMidValue(val));
+  };
+  const setTreble = (val: number) => {
+    setTrebleState(val);
+    if (enableAudioEngine) import('../services/audioEngine').then(eng => eng.setTrebleValue(val));
+  };
+  const setPan = (val: number) => {
+    setPanState(val);
+    if (enableAudioEngine) import('../services/audioEngine').then(eng => eng.setPanValue(val));
+  };
   const getFrequencyData = () => null;
 
   // Pitch control
@@ -374,7 +395,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // ReplayGain
   const setReplayGain = (val: boolean) => {
     setReplayGainState(val);
-    import('../services/audioEngine').then(eng => eng.setReplayGain(val));
+    if (enableAudioEngine) import('../services/audioEngine').then(eng => eng.setReplayGain(val));
+  };
+
+  const setEnableAudioEngine = (val: boolean) => {
+    setEnableAudioEngineState(val);
+    if (!val && audioRef.current) {
+      // Disconnect Web Audio API to allow background play
+      import('../services/audioEngine').then(eng => eng.disconnectAudio());
+    } else if (val && audioRef.current) {
+      // Reconnect
+      import('../services/audioEngine').then(eng => {
+        eng.connectLocalAudio(audioRef.current!);
+        eng.setPitch(pitch, audioRef.current!);
+      });
+    }
   };
 
   // Queue controls
@@ -416,11 +451,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   return (
     <PlayerContext.Provider value={{
       currentTrack, isPlaying, progress, duration, volume,
-      bass, mid, treble, pan, pitch, replayGain,
+      bass, mid, treble, pan, pitch, replayGain, enableAudioEngine,
       queue, shuffle, repeat, recentlyPlayed, crossfadeDuration,
       showQueue, showFullScreen, showShortcuts, showLyrics, showMiniPlayer,
       playTrack, togglePlayPause, seek, setVolumeLevel,
-      setBass, setMid, setTreble, setPan, setPitch, setReplayGain, getFrequencyData,
+      setBass, setMid, setTreble, setPan, setPitch, setReplayGain, setEnableAudioEngine, getFrequencyData,
       addToQueue, removeFromQueue, clearQueue, playNext, playPrev,
       toggleShuffle, toggleRepeat, setCrossfadeDuration,
       setShowQueue, setShowFullScreen, setShowShortcuts, setShowLyrics, setShowMiniPlayer,
