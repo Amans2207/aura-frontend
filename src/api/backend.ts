@@ -157,13 +157,8 @@ export const unfollowArtist = async (browseId: string) => {
   return res.json();
 };
 
-const PIPED_INSTANCES = [
-  "https://pipedapi.kavin.rocks",
-  "https://pipedapi.syncpundit.io",
-  "https://api.piped.projectsegfau.lt",
-  "https://piped-api.lunar.icu"
-];
-
+// getStreamUrl: calls our backend which internally tries pytubefix → Piped API
+// All fallback logic is server-side to avoid browser CORS restrictions.
 export const getStreamUrl = async (videoId: string): Promise<string | null> => {
   try {
     const res = await apiFetch(`${API_BASE}/stream/url?video_id=${videoId}`);
@@ -171,45 +166,10 @@ export const getStreamUrl = async (videoId: string): Promise<string | null> => {
       const data = await res.json();
       if (data.url) return data.url;
     }
+    console.warn('Backend returned non-ok for stream/url:', res.status);
   } catch (e) {
-    console.warn("Backend stream fetch failed, trying fallbacks:", e);
+    console.error('getStreamUrl failed:', e);
   }
-
-  // Fallback to Piped APIs from the client side (bypasses Datacenter IP blocks)
-  for (const instance of PIPED_INSTANCES) {
-    try {
-      const res = await fetch(`${instance}/streams/${videoId}`);
-      if (res.ok) {
-        const data = await res.json();
-        const audioStreams = data.audioStreams;
-        if (audioStreams && audioStreams.length > 0) {
-          // Return the highest bitrate m4a stream usually at the end, or the first one
-          const m4aStreams = audioStreams.filter((s: any) => s.mimeType?.includes('audio/mp4'));
-          if (m4aStreams.length > 0) return m4aStreams[0].url;
-          return audioStreams[0].url;
-        }
-      }
-    } catch (e) {
-      console.warn(`Piped instance ${instance} failed`);
-    }
-  }
-
-  // Final fallback to Cobalt API (Public instance)
-  try {
-    const res = await fetch('https://api.cobalt.tools/api/json', {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: `https://www.youtube.com/watch?v=${videoId}`, isAudioOnly: true })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.url) return data.url;
-    }
-  } catch (e) {
-    console.warn("Cobalt API fallback failed");
-  }
-
-  // If ALL fail, we have to return null. The track won't play.
   return null;
 };
 
