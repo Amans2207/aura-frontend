@@ -320,7 +320,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       // Fetch the raw googlevideo.com URL instead of using a 302 redirect endpoint
       // This permanently fixes mobile Safari/Chrome audio loading issues!
       import('../api/backend').then(({ getStreamUrl }) => {
-        getStreamUrl(track.id).then(url => {
+        getStreamUrl(track.id, track.title, track.artist).then(url => {
           if (url) {
             audio.src = url;
             audio.play().then(() => {
