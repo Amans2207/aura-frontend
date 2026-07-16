@@ -1,6 +1,6 @@
 import type { Track } from '../data/tracks';
 
-export const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000' : 'https://aura-backend-gs61.onrender.com');
+export const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000' : 'https://aura-backend-bice.vercel.app');
 import { supabase } from '../lib/supabase';
 
 export const getDeviceId = () => {
