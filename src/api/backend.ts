@@ -157,8 +157,10 @@ export const unfollowArtist = async (browseId: string) => {
   return res.json();
 };
 
-// getStreamUrl: calls our backend which internally tries pytubefix → Piped API
-// All fallback logic is server-side to avoid browser CORS restrictions.
+// getStreamUrl:
+// 1. Try our backend /stream/url (pytubefix)
+// 2. If backend returns 503, fall back to /proxy/piped (Piped API proxied server-side)
+// Everything goes through our backend → no browser CORS issues at all.
 export const getStreamUrl = async (videoId: string): Promise<string | null> => {
   try {
     const res = await apiFetch(`${API_BASE}/stream/url?video_id=${videoId}`);
@@ -166,9 +168,25 @@ export const getStreamUrl = async (videoId: string): Promise<string | null> => {
       const data = await res.json();
       if (data.url) return data.url;
     }
-    console.warn('Backend returned non-ok for stream/url:', res.status);
+    // If backend signals pytubefix failed (503), try the Piped proxy
+    if (res.status === 503 || res.status === 500) {
+      console.warn('pytubefix failed, trying /proxy/piped fallback');
+      const piped = await apiFetch(`${API_BASE}/proxy/piped/${videoId}`);
+      if (piped.ok) {
+        const data = await piped.json();
+        if (data.url) return data.url;
+      }
+    }
   } catch (e) {
     console.error('getStreamUrl failed:', e);
+    // Network error: try proxy/piped directly as last resort
+    try {
+      const piped = await apiFetch(`${API_BASE}/proxy/piped/${videoId}`);
+      if (piped.ok) {
+        const data = await piped.json();
+        if (data.url) return data.url;
+      }
+    } catch { /* give up */ }
   }
   return null;
 };
