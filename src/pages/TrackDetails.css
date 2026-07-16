@@ -1,0 +1,241 @@
+.track-details-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  width: 100%;
+}
+
+.back-btn {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: var(--bg-surface);
+  border: var(--glass-border);
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: var(--bg-elevated);
+  transform: translateX(-5px);
+}
+
+.track-hero {
+  display: flex;
+  gap: var(--spacing-xl);
+  align-items: flex-end;
+}
+
+.large-album-art {
+  width: 250px;
+  height: 250px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  box-shadow: 0 12px 40px rgba(31, 38, 135, 0.2);
+  flex-shrink: 0;
+}
+
+.track-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding-bottom: var(--spacing-md);
+}
+
+.track-hero-info h2 {
+  font-size: 3.5rem;
+  line-height: 1.1;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.track-hero-info h3 {
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.play-large-btn {
+  margin-top: var(--spacing-md);
+  padding: 0.8rem 2.5rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  width: max-content;
+  background: var(--bg-elevated);
+  border: var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.play-large-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-md);
+}
+
+.lyrics-section {
+  padding: var(--spacing-xl);
+  border-radius: 16px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.lyrics-section h4 {
+  margin-bottom: var(--spacing-md);
+  font-size: 1.2rem;
+  color: var(--accent-primary);
+}
+
+.lyrics-text {
+  font-family: inherit;
+  white-space: pre-wrap;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.similar-tracks-section h4 {
+  margin-bottom: var(--spacing-md);
+  font-size: 1.2rem;
+}
+
+.similar-track-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.sim-track-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sim-track-card:hover {
+  transform: translateX(5px);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.sim-track-card img {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.sim-track-info h5 {
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+
+.sim-track-info p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .track-hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .track-hero-info h2 {
+    font-size: 2.5rem;
+  }
+
+  .play-large-btn {
+    align-self: center;
+  }
+}
+
+/* Sim track action buttons */
+.sim-track-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.sim-track-card:hover .sim-track-btns {
+  opacity: 1;
+}
+
+.tl-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: rgba(0,0,0,0.06);
+  color: var(--text-primary);
+  transition: all 0.15s;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+}
+
+.tl-btn:hover {
+  background: var(--accent-gradient);
+  color: white;
+}
+
+.tl-video-btn:hover {
+  background: #ff0000 !important;
+}
+
+/* Action bar on track details */
+.track-action-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.track-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: white;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-primary);
+}
+
+.track-action-btn:hover {
+  background: var(--bg-surface);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-1px);
+}
+
+.track-action-btn.liked {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: rgba(236,72,153,0.06);
+}
+

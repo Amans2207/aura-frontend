@@ -1,0 +1,216 @@
+.fullscreen-player {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.fs-bg {
+  position: absolute;
+  inset: -20px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(60px) brightness(0.4);
+  transform: scale(1.1);
+}
+
+.fs-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7));
+}
+
+.fs-close {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10;
+  color: white;
+  background: rgba(255,255,255,0.15) !important;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fs-close:hover {
+  background: rgba(255,255,255,0.25) !important;
+}
+
+.fs-content {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  width: 100%;
+  max-width: 900px;
+  padding: 2rem;
+}
+
+.fs-art {
+  flex-shrink: 0;
+  width: 340px;
+  height: 340px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+}
+
+.fs-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fs-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  color: white;
+}
+
+.fs-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.fs-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 0.3rem;
+}
+
+.fs-artist {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+}
+
+.fs-like-btn {
+  color: rgba(255,255,255,0.7) !important;
+  flex-shrink: 0;
+  padding: 8px !important;
+}
+
+.fs-like-btn.liked {
+  color: var(--accent-primary) !important;
+}
+
+.fs-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fs-progress-track {
+  position: relative;
+  height: 6px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+  overflow: visible;
+}
+
+.fs-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: white;
+  border-radius: 3px;
+  pointer-events: none;
+  transition: width 0.3s linear;
+}
+
+.fs-progress-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  height: 100%;
+}
+
+.fs-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.fs-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.fs-ctrl {
+  color: rgba(255,255,255,0.8) !important;
+  transition: all 0.2s !important;
+}
+
+.fs-ctrl:hover {
+  color: white !important;
+  transform: scale(1.15);
+}
+
+.active-ctrl {
+  color: var(--accent-primary) !important;
+}
+
+.fs-play-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: white !important;
+  color: #1a1a2e !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  transition: all 0.2s !important;
+}
+
+.fs-play-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 768px) {
+  .fs-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 5rem 1.5rem 2rem;
+  }
+
+  .fs-art {
+    width: 260px;
+    height: 260px;
+  }
+
+  .fs-title {
+    font-size: 1.4rem;
+    text-align: center;
+  }
+
+  .fs-artist {
+    text-align: center;
+  }
+
+  .fs-title-row {
+    flex-direction: column;
+    align-items: center;
+  }
+}

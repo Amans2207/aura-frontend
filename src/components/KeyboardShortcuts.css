@@ -1,0 +1,86 @@
+.shortcuts-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shortcuts-panel {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  width: 380px;
+  max-width: 90vw;
+}
+
+.shortcuts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+
+.shortcuts-header h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.shortcut-row:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.shortcut-key {
+  background: linear-gradient(135deg, rgba(236,72,153,0.1), rgba(139,92,246,0.15));
+  border: 1px solid rgba(139,92,246,0.2);
+  color: var(--accent-secondary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: monospace;
+  min-width: 44px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.shortcut-action {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.shortcuts-tip {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.shortcuts-tip kbd {
+  background: rgba(0,0,0,0.07);
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  font-size: 0.78rem;
+}

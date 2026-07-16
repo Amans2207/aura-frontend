@@ -1,0 +1,346 @@
+/* Library Pages Shared Styles */
+
+/* Artists grid */
+.artists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-family: inherit;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  margin-right: auto;
+}
+.back-btn:hover {
+  color: var(--text-primary);
+  background: rgba(0,0,0,0.05);
+}
+
+/* Hero Banner for Playlists */
+.library-hero {
+  width: 100%;
+  height: 200px;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  background: var(--accent-gradient);
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+.library-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem;
+  gap: 4px;
+}
+.library-hero-overlay h1 {
+  color: white;
+  font-size: 2rem;
+}
+.library-hero-overlay p {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.9rem;
+}
+.hero-icon {
+  color: rgba(255,255,255,0.5);
+}
+
+/* Track list (row-style) */
+.track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+}
+.track-list-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.track-list-item:hover {
+  transform: translateX(4px);
+  background: rgba(0,0,0,0.04);
+}
+.track-list-item.active-card {
+  background: linear-gradient(135deg, rgba(236,72,153,0.15), rgba(139,92,246,0.15));
+  border: 1px solid rgba(236,72,153,0.3);
+}
+.track-num {
+  width: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.track-list-art {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.local-art {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+.local-art img {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.track-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+.track-list-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track-list-artist {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+.track-list-duration {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+.track-play-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.track-list-item:hover .track-play-btn {
+  opacity: 1;
+}
+
+/* Playlist cover placeholder */
+.playlist-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+  color: var(--accent-primary);
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+.empty-icon {
+  color: var(--accent-primary);
+  opacity: 0.5;
+}
+.empty-state h3 {
+  font-size: 1.4rem;
+}
+.empty-state p {
+  color: var(--text-secondary);
+  max-width: 320px;
+}
+
+/* Artists grid */
+.artists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.5rem;
+  padding: 0.5rem;
+}
+.artist-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.artist-card:hover {
+  box-shadow: 0 8px 32px rgba(236,72,153,0.2);
+}
+.artist-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  font-size: 2rem;
+}
+.artist-card h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.unfollow-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+.unfollow-btn:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+/* Primary/Secondary Buttons */
+.primary-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6rem 1.2rem;
+  background: var(--accent-gradient);
+  color: white;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(236,72,153,0.3);
+}
+.primary-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(236,72,153,0.4);
+}
+.secondary-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6rem 1.2rem;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-radius: 24px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border: var(--glass-border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.secondary-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h3 {
+  font-size: 1.2rem;
+}
+.modal-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--bg-surface);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.modal-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(236,72,153,0.1);
+}
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* Skeleton loaders */
+.loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+  padding: 0.5rem;
+}
+.skeleton-card {
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-circle {
+  border-radius: 50%;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.loading-text {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 1rem;
+}
