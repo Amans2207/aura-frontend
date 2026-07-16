@@ -12,6 +12,10 @@
   z-index: 20;
 }
 
+.mobile-more-btn, .mobile-overflow-menu {
+  display: none;
+}
+
 .now-playing {
   display: flex;
   align-items: center;
@@ -152,12 +156,58 @@
   }
   
   /* Hide skip buttons, show only play/pause */
-  .control-btn:not(.play-btn) {
+  .control-btn:not(.play-btn):not(.mobile-more-btn) {
     display: none;
   }
   
   .extra-controls {
+    display: flex;
+    width: auto;
+  }
+  
+  .extra-controls > *:not(.mobile-more-btn):not(.mobile-overflow-menu) {
     display: none;
+  }
+
+  .mobile-more-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-overflow-menu {
+    position: absolute;
+    bottom: calc(var(--player-height) + 15px);
+    right: 10px;
+    background: var(--bg-elevated);
+    backdrop-filter: blur(20px);
+    border: var(--glass-border);
+    border-radius: 16px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: var(--glass-shadow);
+    z-index: 1000;
+    min-width: 180px;
+  }
+
+  .mobile-menu-item {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .mobile-menu-item:active {
+    background: rgba(255,255,255,0.1);
+  }
   }
   
   /* Move progress bar to the very top edge of the player bar */

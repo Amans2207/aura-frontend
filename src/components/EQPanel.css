@@ -134,3 +134,11 @@
 .eq-toggle-switch input:checked + .eq-toggle-slider::before {
   transform: translateX(16px);
 }
+
+@media (max-width: 768px) {
+  .eq-panel {
+    width: calc(100vw - 40px);
+    right: 20px;
+    bottom: calc(var(--player-height) + 10px);
+  }
+}

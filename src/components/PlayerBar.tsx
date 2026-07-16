@@ -10,7 +10,7 @@ import MiniPlayer from './MiniPlayer';
 import { 
   Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Repeat1,
   ListMusic, Maximize2, Volume2, VolumeX, Keyboard, Download,
-  Mic2, PictureInPicture2, Timer
+  Mic2, PictureInPicture2, Timer, MoreHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -72,6 +72,7 @@ export default function PlayerBar() {
   const [sleepTimer, setSleepTimer] = useState<number | null>(null);
   const [sleepCountdown, setSleepCountdown] = useState<number>(0);
   const [showSleepMenu, setShowSleepMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { canInstall, install } = usePWAInstall();
 
   // Sleep timer countdown
@@ -273,6 +274,42 @@ export default function PlayerBar() {
             min="0" max="100" value={volume}
             onChange={handleVolumeChange}
           />
+          <button 
+            className="control-btn mobile-more-btn" 
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+          >
+            <MoreHorizontal size={20} />
+          </button>
+
+          <AnimatePresence>
+            {showMobileMenu && (
+              <motion.div 
+                className="mobile-overflow-menu"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+              >
+                <button className="mobile-menu-item" onClick={() => { setShowEQ(true); setShowMobileMenu(false); }}>
+                  Equalizer (EQ)
+                </button>
+                <button className="mobile-menu-item" onClick={() => { setShowLyrics(!showLyrics); setShowMobileMenu(false); }}>
+                  <Mic2 size={16} /> Lyrics
+                </button>
+                <button className="mobile-menu-item" onClick={() => { setShowQueue(!showQueue); setShowMobileMenu(false); }}>
+                  <ListMusic size={16} /> Queue
+                </button>
+                <button className="mobile-menu-item" onClick={() => { setShowSleepMenu(!showSleepMenu); setShowMobileMenu(false); }}>
+                  <Timer size={16} /> Sleep Timer
+                </button>
+                <button className="mobile-menu-item" onClick={() => { setShowShortcuts(true); setShowMobileMenu(false); }}>
+                  <Keyboard size={16} /> Shortcuts
+                </button>
+                <button className="mobile-menu-item" onClick={toggleMute}>
+                  {muted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />} Mute
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </>
