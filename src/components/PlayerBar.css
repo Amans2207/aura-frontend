@@ -208,7 +208,6 @@
   .mobile-menu-item:active {
     background: rgba(255,255,255,0.1);
   }
-  }
   
   /* Move progress bar to the very top edge of the player bar */
   .progress-bar-container {
