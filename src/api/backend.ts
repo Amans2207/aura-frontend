@@ -159,7 +159,7 @@ export const unfollowArtist = async (browseId: string) => {
 
 export const getStreamUrl = async (videoId: string): Promise<string | null> => {
   try {
-    const res = await apiFetch(`${API_BASE}/stream?video_id=${videoId}`);
+    const res = await apiFetch(`${API_BASE}/stream/url?video_id=${videoId}`);
     const data = await res.json();
     return data.url;
   } catch (e) {

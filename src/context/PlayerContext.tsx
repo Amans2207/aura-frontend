@@ -271,12 +271,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (!audioRef.current) audioRef.current = new Audio();
     const audio = audioRef.current;
     
-    if ((track as any).isLocal && (track as any).localUrl) {
-      audio.src = (track as any).localUrl;
-    } else {
-      audio.src = `${API_BASE}/stream?video_id=${track.id}`;
-    }
-    
     audio.volume = volume / 100;
     audio.preservesPitch = true;
     (audio as any).mozPreservesPitch = true;
@@ -307,13 +301,39 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    audio.play().then(() => {
-      setIsPlaying(true);
-      setMediaSessionPlayback('playing');
-      startBackgroundKeepAlive();
-    }).catch(console.error);
+    // iOS/Mobile audio unlock trick: play a silent base64 audio first
+    // This satisfies the "play must be triggered by user gesture synchronously" rule
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile && !audio.src) {
+      audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+      audio.play().catch(() => {});
+    }
 
-  }, [addToRecent, handleEnded, volume, crossfadeDuration, pitch]);
+    if ((track as any).isLocal && (track as any).localUrl) {
+      audio.src = (track as any).localUrl;
+      audio.play().then(() => {
+        setIsPlaying(true);
+        setMediaSessionPlayback('playing');
+        startBackgroundKeepAlive();
+      }).catch(console.error);
+    } else {
+      // Fetch the raw googlevideo.com URL instead of using a 302 redirect endpoint
+      // This permanently fixes mobile Safari/Chrome audio loading issues!
+      import('../api/backend').then(({ getStreamUrl }) => {
+        getStreamUrl(track.id).then(url => {
+          if (url) {
+            audio.src = url;
+            audio.play().then(() => {
+              setIsPlaying(true);
+              setMediaSessionPlayback('playing');
+              startBackgroundKeepAlive();
+            }).catch(console.error);
+          }
+        });
+      });
+    }
+
+  }, [addToRecent, handleEnded, volume, crossfadeDuration, pitch, enableAudioEngine, playNext, playPrev]);
 
   // --- Play Next / Prev ---
   const playNext = useCallback(async () => {
