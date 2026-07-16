@@ -33,6 +33,16 @@ function AppContent() {
   // Initialize theme on mount
   useEffect(() => { initTheme(); }, []);
 
+  // Keep-alive ping for Render backend
+  useEffect(() => {
+    import('./api/backend').then(({ API_BASE }) => {
+      const pingServer = () => fetch(`${API_BASE}/ping`).catch(() => {});
+      pingServer(); // Initial ping to wake up server
+      const interval = setInterval(pingServer, 10 * 60 * 1000); // Ping every 10 mins
+      return () => clearInterval(interval);
+    });
+  }, []);
+
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
